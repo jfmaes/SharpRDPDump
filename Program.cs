@@ -125,6 +125,7 @@ namespace SharpRDPDump
                     Compress(dumpFile, zipFile);
                     Console.WriteLine(String.Format("[*] Deleting {0}", dumpFile));
                     File.Delete(dumpFile);
+                    dumpFile = zipFile;
                 }
                 Console.WriteLine("\n[+] Dumping completed." + "\n check " + dumpFile);
 
