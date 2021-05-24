@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
 using DInvoke.DynamicInvoke;
 using NDesk.Options;
@@ -40,6 +41,10 @@ namespace SharpRDPDump
         {
             Console.WriteLine(" Usage:");
             p.WriteOptionDescriptions(Console.Out);
+        }
+        public static bool Is64Bits()
+        {
+            return Marshal.SizeOf(typeof(IntPtr)) == 8 ? true : false;
         }
 
         public static bool IsHighIntegrity()
@@ -151,6 +156,12 @@ namespace SharpRDPDump
             //   try
             {
                 PrintBanner();
+                if (!Is64Bits())
+                {
+                    throw new Exception("only 64 bit is supported. (for now)");
+
+                }
+
                 if (!IsHighIntegrity())
                 {
                     throw new Exception("you need admin privs to dump RDP");
