@@ -1,6 +1,10 @@
 # SharpRDPDump
  Create a minidump of TermService for clear text pw extraction
 all credits go to JonasLyk
+
+Only works when compiled for x64. <br>
+requires windows.management reference, if you need to location it lives in `C:\Windows\Microsoft.NET\assembly\GAC_MSIL\System.Management\v4.0_4.0.0.0__b03f5f7f11d50a3a`
+
 ```
  ._________________.
  | _______________ |
