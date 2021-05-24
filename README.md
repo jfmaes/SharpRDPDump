@@ -1,6 +1,6 @@
 # SharpRDPDump
  Create a minidump of TermService for clear text pw extraction
-
+all credits go to JonasLyk
 ```
  ._________________.
  | _______________ |
