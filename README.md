@@ -1,3 +1,6 @@
+# community experiment. Dont use this for now unless it is for testing or submitting a PR.
+Use mimikatz instead for the real magic.
+
 # SharpRDPDump
  Create a minidump of TermService for clear text pw extraction
 all credits go to JonasLyk, nice explination found here :
